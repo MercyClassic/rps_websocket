@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.74.1
+    hooks:
+      - id: terraform_fmt
+        args: [--args=-write=true]
+
+  - repo: https://github.com/pycqa/flake8.git
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        args: [--config, .flake8]
+        additional_dependencies: [
+          "flake8-bugbear",
+          "flake8-builtins",
+          "flake8-cognitive-complexity",
+          "flake8-commas",
+          "flake8-quotes",
+          "flake8-todo",
+          "flake8-variables-names",
+        ]

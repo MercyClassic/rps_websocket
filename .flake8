@@ -1,0 +1,15 @@
+[flake8]
+exclude =
+    */venv/*
+    ./migrations/*
+    *.git
+    */__pycache__/*
+    */__init__.py
+    src/db/base.py
+    src/media
+    src/logs
+ignore = A003, VNE003, W503, E712, B010
+extend-immutable-calls = Depends, fastapi.Depends, fastapi.params.Depends
+max-line-length=100
+max-complexity=8
+inline-quotes = '
