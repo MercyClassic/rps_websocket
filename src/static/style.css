@@ -27,6 +27,18 @@ button {
     font-size: 16px;
 }
 
+.win-text {
+    color: green;
+}
+
+.lose-text {
+    color: red;
+}
+
+.draw-text {
+    color: yellow;
+}
+
 body {
     display: table-cell;
     vertical-align: middle;

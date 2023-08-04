@@ -2,13 +2,8 @@ let ws = new WebSocket('ws://localhost:8000/game/ws');
 let main = document.getElementById('main');
 
 
-ws.onopen = function (event) {
-    console.log(event);
-}
-
 ws.onmessage = function (event) {
     let data = JSON.parse(event.data);
-    console.log(data);
     switch (data.action) {
         case 'error':
             alert(data.detail);
@@ -16,11 +11,24 @@ ws.onmessage = function (event) {
         case 'get_all':
             getMainPage(data);
             break;
-        case 'create':
-            getGamePage(data);
+        case 'first_ten':
+            getMainPage(data, true);
             break;
+        case 'create':
         case 'join':
             getGamePage(data);
+            break;
+        case 'ready':
+            changeReadyStatusVisibility();
+            break;
+        case 'win':
+            getWinPage();
+            break;
+        case 'lose':
+            getLosePage();
+            break;
+        case 'draw':
+            getDrawPage();
             break;
         default:
             console.log(data)
@@ -55,7 +63,7 @@ function setReady(event) {
             {
                 'action': 'ready',
                 'state': divStatements.dataset.state,
-                'game_number': document.getElementById('game-info').number,
+                'game_number': document.getElementById('game-info').dataset.number,
             }
         );
     } else {
@@ -64,38 +72,54 @@ function setReady(event) {
 }
 
 document.getElementById('create-game').addEventListener('click', createGame);
-document.getElementById('get-game-list').addEventListener('click', getGameList);
 
 
-function getMainPage(data) {
+function getMainPage(data, first_ten = false) {
     let gameList = data.game_list;
-            let noGames = document.getElementById('no-games');
-            noGames.innerHTML = '';
-            if (gameList.length === 0) {
-                let div = document.createElement('div');
-                let text = document.createTextNode('No active games now, you can create own if you want it');
-                div.appendChild(text);
-                noGames.appendChild(div);
-                return null;
-            }
-            let gameListUl = document.getElementById('game-list');
-            gameListUl.innerHTML = '';
-            gameList.forEach((gameInfo) => {
-                let li = document.createElement('li');
-                li.classList.add('game-list');
-                let text = document.createTextNode(`${gameInfo.game_number} `);
-                let span = document.createElement('span');
-                span.innerHTML = gameInfo.author_username;
-                let btn = document.createElement('button');
-                btn.innerHTML = 'join';
-                btn.id = 'join-game';
-                btn.setAttribute('data-number', gameInfo.game_number);
-                li.appendChild(text);
-                li.appendChild(span);
-                li.appendChild(btn);
-                gameListUl.appendChild(li);
-                btn.addEventListener('click', joinGame);
-            });
+    let noGames = document.getElementById('no-games');
+    if (noGames === null) {
+        return null;
+    }
+    noGames.innerHTML = '';
+    if (gameList.length === 0) {
+        let div = document.createElement('div');
+        let text = document.createTextNode('No active games now, you can create own if you want it');
+        div.appendChild(text);
+        noGames.appendChild(div);
+        return null;
+    }
+    let gameListUl = document.getElementById('game-list');
+    gameListUl.innerHTML = '';
+    gameList.forEach((gameInfo) => {
+        let li = document.createElement('li');
+        li.classList.add('game-list');
+        let text = document.createTextNode(`${gameInfo.game_number} `);
+        let span = document.createElement('span');
+        span.innerHTML = gameInfo.author_username;
+        let btn = document.createElement('button');
+        btn.innerHTML = 'join';
+        btn.id = 'join-game';
+        btn.setAttribute('data-number', gameInfo.game_number);
+        li.appendChild(text);
+        li.appendChild(span);
+        li.appendChild(btn);
+        gameListUl.appendChild(li);
+        btn.addEventListener('click', joinGame);
+    });
+
+    if (first_ten) {
+        if (document.getElementById('get-game-list') !== null) {
+            return null;
+        }
+        let showMoreGames = document.createElement('button');
+        showMoreGames.id = 'get-game-list';
+        let text = document.createTextNode('show more games');
+        showMoreGames.appendChild(text);
+        document.getElementById('games').appendChild(showMoreGames);
+        showMoreGames.addEventListener('click', getGameList);
+    } else {
+        document.getElementById('get-game-list').remove();
+    }
 }
 
 function getGamePage(data) {
@@ -108,11 +132,12 @@ function getGamePage(data) {
     gameInfo.appendChild(gameInfoText);
 
     let isReady = document.createElement('div');
+    isReady.id = 'is-ready-text';
     let readyText;
     if (data.game_info.is_init_player_ready) {
-        readyText = document.createTextNode('Player is ready');
+        readyText = document.createTextNode('Another player is ready');
     } else {
-        readyText = document.createTextNode('Player is not ready yet');
+        readyText = document.createTextNode('Another player is not ready yet');
     }
     isReady.appendChild(readyText);
 
@@ -120,18 +145,17 @@ function getGamePage(data) {
     let text = document.createTextNode('Choose your item');
     div.appendChild(text);
 
-    let items = createStatements();
-
+    let statements = createStatements();
 
     main.appendChild(gameInfo);
     main.appendChild(isReady);
     main.appendChild(div);
-    main.appendChild(items);
+    main.appendChild(statements);
 }
 
 function createStatements () {
-    let items = document.createElement('div');
-    items.id = 'items';
+    let statements = document.createElement('div');
+    statements.id = 'statements';
 
     let readyBtn = document.createElement('button');
     readyBtn.classList.add('content-center');
@@ -160,11 +184,11 @@ function createStatements () {
     scissors.classList.add('game-icon');
     scissors.addEventListener('click', setState);
 
-    items.appendChild(rock);
-    items.appendChild(paper);
-    items.appendChild(scissors);
-    items.appendChild(readyBtn);
-    return items;
+    statements.appendChild(rock);
+    statements.appendChild(paper);
+    statements.appendChild(scissors);
+    statements.appendChild(readyBtn);
+    return statements;
 }
 
 function setState(event) {
@@ -181,4 +205,36 @@ function setState(event) {
     event.target.style.border = 'solid #00FF8A';
     event.target.style.borderRadius = '100%';
 
+}
+
+function changeReadyStatusVisibility() {
+    let btn = document.getElementById('is-ready-text');
+    btn.innerHTML = 'Another player is ready';
+}
+
+function getWinPage() {
+    main.innerHTML = '';
+    let win = document.createElement('div');
+    let winText = document.createTextNode('You are winner!');
+    win.appendChild(winText);
+    win.classList.add('win-text');
+    main.appendChild(win);
+}
+
+function getLosePage() {
+    main.innerHTML = '';
+    let lose = document.createElement('div');
+    let loseText = document.createTextNode('You are loser!');
+    lose.appendChild(loseText);
+    lose.classList.add('lose-text');
+    main.appendChild(lose);
+}
+
+function getDrawPage() {
+    main.innerHTML = '';
+    let draw = document.createElement('div');
+    let drawText = document.createTextNode('Friendly draw!');
+    draw.appendChild(drawText);
+    draw.classList.add('draw-text');
+    main.appendChild(draw);
 }
