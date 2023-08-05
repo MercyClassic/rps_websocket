@@ -25,16 +25,7 @@ ws.onmessage = function (event) {
         case 'lose':
         case 'draw':
             waitingForResult(data.action);
-            break
-//        case 'win':
-//            getWinPage();
-//            break;
-//        case 'lose':
-//            getLosePage();
-//            break;
-//        case 'draw':
-//            getDrawPage();
-//            break;
+            break;
         default:
             console.log(data)
             break;

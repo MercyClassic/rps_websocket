@@ -2,20 +2,44 @@ from typing import Dict
 
 from starlette.websockets import WebSocket
 
+from db.database import async_sessionmaker
+from managers.users import UserManager
+from models.users import User
+from repositories.users import UserRepository
+
 
 class Player:
     __ready: bool = False
     __state: str = ''
+    __db_user: User | None = None
 
     def __init__(self, ws: WebSocket):
         self.__ws = ws
+        self.repository = UserRepository(async_sessionmaker())
+
+    async def create_db_user(self, token):
+        user_id = (
+            UserManager
+            .get_user_info_from_access_token(token)
+            .get('user_id')
+        )
+        self.__db_user = await self.repository.get_one(user_id)
 
     async def is_this_player(self, websocket: WebSocket) -> bool:
         return self.__ws == websocket
 
     async def get_username(self) -> str:
-        #  need to override
-        return 'username'
+        if self.__db_user:
+            return self.__db_user.name
+        return 'AnonymousUser'
+
+    async def set_win(self) -> None:
+        if self.__db_user:
+            await self.repository.update_win(self.__db_user.id)
+
+    async def set_lose(self) -> None:
+        if self.__db_user:
+            await self.repository.update_lose(self.__db_user.id)
 
     def set_ready(self) -> None:
         self.__ready = True
@@ -65,7 +89,11 @@ class Game:
 
     @staticmethod
     async def create_player(ws: WebSocket) -> Player:
-        return Player(ws)
+        player = Player(ws)
+        token = ws.headers.get('authorization')
+        if token:
+            await player.create_db_user(token)
+        return player
 
     async def join_player(self, websocket: WebSocket) -> bool | None:
         if not self.active:
@@ -115,16 +143,18 @@ class Game:
 
         result = rules[state_init_player][state_connected_player]
         if result == 'W':
+            await self.finish_game(winner=self.__init_player, loser=self.__connected_player)
             return self.__init_player.ws
         elif result == 'L':
+            await self.finish_game(winner=self.__connected_player, loser=self.__init_player)
             return self.__connected_player.ws
         elif result == 'D':
             return self.players_websocket
 
-        await self.finish_game()
-
-    async def finish_game(self):
+    async def finish_game(self, winner: Player, loser: Player):
         self.__finished = True
+        await winner.set_win()
+        await loser.set_lose()
 
     @property
     def players_websocket(self) -> Dict[WebSocket, str]:

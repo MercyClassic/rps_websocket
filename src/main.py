@@ -5,7 +5,8 @@ from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 
 from routers.game import router as game_router
-from routers.chat import router as chat_router
+from routers.users import router as users_router
+from routers.jwt import router as jwt_router
 
 
 logger.add(
@@ -21,9 +22,6 @@ app = FastAPI(title='websocket_game')
 
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
-app.include_router(game_router)
-app.include_router(chat_router)
-
 
 @app.exception_handler(Exception)
 async def unexpected_error_log(request, ex):
@@ -32,3 +30,7 @@ async def unexpected_error_log(request, ex):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=None,
     )
+
+app.include_router(game_router)
+app.include_router(users_router)
+app.include_router(jwt_router)

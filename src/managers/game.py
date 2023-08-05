@@ -40,7 +40,7 @@ class GameConnectionManager:
             await connection.send_json(message)
 
 
-class GameActionsManager(GameConnectionManager):
+class GameActions(GameConnectionManager):
     service = GameService()
     actions: List[str] = ['create', 'get_list', 'join', 'ready', 'close']
 
@@ -115,4 +115,4 @@ class GameActionsManager(GameConnectionManager):
             await loser_websocket.send_json({'action': 'lose'})
 
 
-manager = GameActionsManager()
+manager = GameActions()

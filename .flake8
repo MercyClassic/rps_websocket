@@ -8,7 +8,7 @@ exclude =
     src/db/base.py
     src/media
     src/logs
-ignore = A003, VNE003, B012
+ignore = A003, VNE003, B012, E712, W503
 extend-immutable-calls = Depends, fastapi.Depends, fastapi.params.Depends
 max-line-length=100
 max-cognitive-complexity=9
