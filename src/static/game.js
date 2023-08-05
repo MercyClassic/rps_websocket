@@ -22,14 +22,19 @@ ws.onmessage = function (event) {
             changeReadyStatusVisibility();
             break;
         case 'win':
-            getWinPage();
-            break;
         case 'lose':
-            getLosePage();
-            break;
         case 'draw':
-            getDrawPage();
-            break;
+            waitingForResult(data.action);
+            break
+//        case 'win':
+//            getWinPage();
+//            break;
+//        case 'lose':
+//            getLosePage();
+//            break;
+//        case 'draw':
+//            getDrawPage();
+//            break;
         default:
             console.log(data)
             break;
@@ -210,6 +215,64 @@ function setState(event) {
 function changeReadyStatusVisibility() {
     let btn = document.getElementById('is-ready-text');
     btn.innerHTML = 'Another player is ready';
+}
+
+let time;
+let timerValue;
+let timer;
+let interval;
+
+function waitingForResultPromise() {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve();
+        }, 3500);
+    })
+}
+
+function resultTimer() {
+    time--;
+    if (time === 0) {
+        clearInterval(interval);
+    }
+    timerValue.innerHTML = time;
+    timer.appendChild(timerValue);
+}
+
+function waitingForResult(action) {
+    main.innerHTML = '';
+    time = 3;
+    timer = document.createElement('div');
+
+    let text = document.createElement('div');
+    text.id = 'timer-text';
+    text.innerHTML = 'Waiting for result...';
+    text.classList.add('content-center');
+    text.style.fontSize = '26px';
+
+    timerValue = document.createElement('span');
+    timerValue.id = 'timer-value';
+    timerValue.innerHTML = '3';
+    timerValue.classList.add('content-center');
+    timerValue.style.fontSize = '26px';
+
+    interval = setInterval(resultTimer, 1000);
+    timer.appendChild(text);
+    timer.appendChild(timerValue);
+    main.appendChild(timer);
+    waitingForResultPromise().then(() => {
+        switch (action) {
+            case 'win':
+                getWinPage();
+                break;
+            case 'lose':
+                getLosePage();
+                break;
+            case 'draw':
+                getDrawPage();
+                break;
+        }
+    })
 }
 
 function getWinPage() {

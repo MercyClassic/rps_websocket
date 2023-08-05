@@ -132,6 +132,8 @@ class Game:
         try:
             websockets.update({self.__connected_player.ws: 'connected_player'})
         except AttributeError:
+            pass
+        finally:
             return websockets
 
     async def get_another_player_ws(self, websocket: WebSocket) -> WebSocket | None:

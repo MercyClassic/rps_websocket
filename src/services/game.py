@@ -93,8 +93,9 @@ class GameService:
         if another_player_ws:
             another_player = await game.get_player(another_player_ws)
             if another_player.ready:
+                result = await self.get_result_response(game)
                 Timer(2, self.delete_game, args=(game, )).start()
-                return await self.get_result_response(game)
+                return result
 
         return {'action': 'ready', 'websocket': another_player_ws}
 
