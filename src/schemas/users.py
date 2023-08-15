@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import Field
 from starlette import status
 
 
@@ -30,8 +31,8 @@ class UserCreateSchema(BaseModel):
 class UserReadBaseSchema(BaseModel):
     id: int
     name: str
-    win_count: int
-    lose_count: int
+    win_count: int = Field(default=0)
+    lose_count: int = Field(default=0)
 
     class Config:
         from_attributes = True
