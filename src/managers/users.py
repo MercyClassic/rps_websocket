@@ -49,6 +49,4 @@ class UserManager:
             100000,
         )
         user_input_full_hashed_password = f'{user_input_password_hash.hex()}{salt_from_db.hex()}'
-        if user_input_full_hashed_password == password_from_db:
-            return True
-        return False
+        return user_input_full_hashed_password == password_from_db

@@ -1,23 +1,63 @@
+from abc import abstractmethod, ABC
 from typing import List
 
 from sqlalchemy import select, insert, update
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import load_only
 
 from models.users import User
-from repositories.base import SQLAlchemyRepository
 
 
-class UserRepository(SQLAlchemyRepository):
-    model = User
+class UserRepositoryInterface(ABC):
+    @abstractmethod
+    async def get_info_for_authenticate(self, email: str) -> User:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_all(self) -> List[User]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_one(
+            self,
+            user_id: int,
+    ) -> User:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create(
+            self,
+            user_data: dict,
+            hashed_password: str,
+    ) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def is_user_exists_by_email(self, email: str) -> int | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_win(self, user_id: int) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_lose(self, user_id: int) -> None:
+        raise NotImplementedError
+
+
+class UserRepository(UserRepositoryInterface):
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
     async def get_info_for_authenticate(self, email: str) -> User:
         query = (
-            select(self.model)
-            .where(self.model.email == email)
+            select(User)
+            .where(User.email == email)
             .options(
                 load_only(
-                    self.model.id,
-                    self.model.email, self.model.password, self.model.is_active,
+                    User.id,
+                    User.email, User.password, User.is_active,
                 ),
             )
         )
@@ -26,10 +66,9 @@ class UserRepository(SQLAlchemyRepository):
 
     async def get_all(self) -> List[User]:
         query = (
-            select(self.model)
-            .where(self.model.is_active == True)
+            select(User)
+            .where(User.is_active.is_(True))
         )
-        query = self.paginate_query(query)
         result = await self.session.execute(query)
         return result.scalars().all()
 
@@ -38,8 +77,8 @@ class UserRepository(SQLAlchemyRepository):
             user_id: int,
     ) -> User:
         query = (
-            select(self.model)
-            .where(self.model.id == user_id)
+            select(User)
+            .where(User.id == user_id)
         )
         result = await self.session.execute(query)
         return result.scalar()
@@ -50,33 +89,33 @@ class UserRepository(SQLAlchemyRepository):
             hashed_password: str,
     ) -> int:
         stmt = (
-            insert(self.model)
+            insert(User)
             .values(**user_data, password=hashed_password)
-            .returning(self.model.id)
+            .returning(User.id)
         )
         result = await self.session.execute(stmt)
         await self.session.commit()
         return result.scalar_one()
 
     async def is_user_exists_by_email(self, email: str) -> int | None:
-        query = select(self.model).where(self.model.email == email)
+        query = select(User).where(User.email == email)
         result = await self.session.execute(query)
         return result.scalar()
 
     async def update_win(self, user_id: int) -> None:
         stmt = (
-            update(self.model)
-            .where(self.model.id == user_id)
-            .values(win_count=self.model.win_count + 1)
+            update(User)
+            .where(User.id == user_id)
+            .values(win_count=User.win_count + 1)
         )
         await self.session.execute(stmt)
         await self.session.commit()
 
     async def update_lose(self, user_id: int) -> None:
         stmt = (
-            update(self.model)
-            .where(self.model.id == user_id)
-            .values(lose_count=self.model.lose_count + 1)
+            update(User)
+            .where(User.id == user_id)
+            .values(lose_count=User.lose_count + 1)
         )
         await self.session.execute(stmt)
         await self.session.commit()

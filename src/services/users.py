@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List
 
 from fastapi import HTTPException
@@ -9,7 +10,29 @@ from models.users import User
 from repositories.users import UserRepository
 
 
-class UserService:
+class UserServiceInterface(ABC):
+    @abstractmethod
+    async def authenticate(
+            self,
+            email: str,
+            input_password: str,
+    ) -> int:
+        raise NotImplementedError
+
+    async def get_users(self) -> List[User]:
+        raise NotImplementedError
+
+    async def get_user(self, user_id: int) -> User:
+        raise NotImplementedError
+
+    async def create_user(
+            self,
+            user_data: dict,
+    ) -> dict:
+        raise NotImplementedError
+
+
+class UserService(UserServiceInterface):
     def __init__(self, user_repo: UserRepository):
         self.user_repo = user_repo
 

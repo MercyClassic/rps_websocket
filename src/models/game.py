@@ -90,7 +90,7 @@ class Game:
     @staticmethod
     async def create_player(ws: WebSocket) -> Player:
         player = Player(ws)
-        token = ws.headers.get('authorization')
+        token = ws.headers.get('Authorization')
         if token:
             await player.create_db_user(token)
         return player

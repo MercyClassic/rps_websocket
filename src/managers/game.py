@@ -49,7 +49,8 @@ class GameActions(GameConnectionManager):
             handler = getattr(self, data['action'], self.action_not_allowed)
         else:
             handler = self.action_not_allowed
-        return await handler(websocket, data)
+        result = await handler(websocket, data)
+        return result
 
     async def on_connect(self, websocket: WebSocket) -> None:
         game_list = await self.get_first_ten()
@@ -67,7 +68,10 @@ class GameActions(GameConnectionManager):
         await websocket.send_json(
             {
                 'action': 'create',
-                'game_info': {'game_number': game_number, 'is_init_player_ready': False},
+                'game_info': {
+                    'game_number': game_number,
+                    'is_init_player_ready': False,
+                },
             },
         )
 

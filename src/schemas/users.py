@@ -1,10 +1,11 @@
 from fastapi import HTTPException
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from pydantic import Field
 from starlette import status
 
 
 class UserCreateSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     name: str
     email: EmailStr
     password1: str
@@ -24,15 +25,10 @@ class UserCreateSchema(BaseModel):
             )
         return value
 
-    class Config:
-        from_attributes = True
-
 
 class UserReadBaseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     win_count: int = Field(default=0)
     lose_count: int = Field(default=0)
-
-    class Config:
-        from_attributes = True

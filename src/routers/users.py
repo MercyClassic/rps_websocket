@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from pydantic import TypeAdapter
@@ -9,8 +11,7 @@ from schemas.users import (
     UserCreateSchema,
     UserReadBaseSchema,
 )
-from services.users import UserService
-from dependencies.users import get_user_service
+from services.users import UserServiceInterface
 
 
 router = APIRouter(
@@ -21,7 +22,7 @@ router = APIRouter(
 
 @router.get('', dependencies=[Depends(get_current_user_info)])
 async def get_users(
-        user_service: UserService = Depends(get_user_service),
+        user_service: Annotated[UserServiceInterface, Depends()],
 ) -> JSONResponse:
     users = await user_service.get_users()
     data = jsonable_encoder(users)
@@ -35,7 +36,7 @@ async def get_users(
 @router.get('/{user_id}', dependencies=[Depends(get_current_user_info)])
 async def get_user(
         user_id: int,
-        user_service: UserService = Depends(get_user_service),
+        user_service: Annotated[UserServiceInterface, Depends()],
 ) -> JSONResponse:
     user = await user_service.get_user(user_id)
     data = jsonable_encoder(
@@ -50,7 +51,7 @@ async def get_user(
 @router.post('/register')
 async def registration(
         user_data: UserCreateSchema,
-        user_service: UserService = Depends(get_user_service),
+        user_service: Annotated[UserServiceInterface, Depends()],
 ) -> JSONResponse:
     user = await user_service.create_user(user_data=user_data.model_dump())
     data = jsonable_encoder(
