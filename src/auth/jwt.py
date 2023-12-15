@@ -4,7 +4,9 @@ import jwt
 from fastapi import HTTPException
 from starlette import status
 
-from config import ALGORITHM
+from config import get_config
+
+ALGORITHM = get_config().ALGORITHM
 
 
 def generate_jwt(

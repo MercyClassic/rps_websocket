@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from auth.jwt import generate_jwt, decode_jwt
-from config import JWT_ACCESS_SECRET_KEY, JWT_REFRESH_SECRET_KEY
 from repositories.jwt import JWTRepository
 
 
@@ -32,8 +31,15 @@ class JWTServiceInterface(ABC):
 
 
 class JWTService(JWTServiceInterface):
-    def __init__(self, jwt_repo: JWTRepository):
+    def __init__(
+            self,
+            jwt_repo: JWTRepository,
+            jwt_refresh_secret_key: str,
+            jwt_access_secret_key: str,
+    ):
         self.jwt_repo = jwt_repo
+        self.jwt_refresh_secret_key = jwt_refresh_secret_key
+        self.jwt_access_secret_key = jwt_access_secret_key
 
     async def create_auth_tokens(self, user_id: int):
         return {
@@ -46,7 +52,7 @@ class JWTService(JWTServiceInterface):
         encoded_jwt = generate_jwt(
             data=to_encode,
             lifetime_seconds=60 * 60 * 24 * 7,
-            secret=JWT_REFRESH_SECRET_KEY,
+            secret=self.jwt_refresh_secret_key,
         )
         await self.jwt_repo.save_refresh_token(user_id, encoded_jwt)
         return encoded_jwt
@@ -57,13 +63,13 @@ class JWTService(JWTServiceInterface):
         return generate_jwt(
             data=to_encode,
             lifetime_seconds=60 * 60,
-            secret=JWT_ACCESS_SECRET_KEY,
+            secret=self.jwt_access_secret_key,
         )
 
     async def refresh_auth_tokens(self, refresh_token: str):
         refresh_token_data = decode_jwt(
             encoded_jwt=refresh_token,
-            secret=JWT_REFRESH_SECRET_KEY,
+            secret=self.jwt_refresh_secret_key,
         )
         await self.delete_user_tokens_if_not_exist(refresh_token, refresh_token_data)
 
@@ -73,7 +79,7 @@ class JWTService(JWTServiceInterface):
     async def delete_refresh_token(self, refresh_token: str) -> None:
         refresh_token_data = decode_jwt(
             encoded_jwt=refresh_token,
-            secret=JWT_REFRESH_SECRET_KEY,
+            secret=self.jwt_refresh_secret_key,
             soft=True,
         )
         await self.delete_user_tokens_if_not_exist(refresh_token, refresh_token_data)

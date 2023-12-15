@@ -5,7 +5,7 @@ from starlette import status
 from starlette.exceptions import HTTPException
 
 from auth.jwt import decode_jwt
-from config import JWT_ACCESS_SECRET_KEY
+from config import get_config
 
 
 class UserManager:
@@ -14,7 +14,7 @@ class UserManager:
     def get_user_info_from_access_token(access_token: str) -> dict:
         access_token_data = decode_jwt(
             encoded_jwt=access_token,
-            secret=JWT_ACCESS_SECRET_KEY,
+            secret=get_config().JWT_ACCESS_SECRET_KEY,
         )
         return {
             'user_id': int(access_token_data.get('sub')),

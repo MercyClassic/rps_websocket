@@ -1,17 +1,26 @@
-import os
-
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-load_dotenv()
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(env_file=('.env', '../.env'))
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_DB: str
+
+    JWT_ACCESS_SECRET_KEY: str
+    JWT_REFRESH_SECRET_KEY: str
+    ALGORITHM: str = 'HS256'
+
+    @property
+    def db_uri(self) -> str:
+        return 'postgresql+asyncpg://%s:%s@%s:5432/%s' % (
+            self.POSTGRES_USER,
+            self.POSTGRES_PASSWORD,
+            self.POSTGRES_HOST,
+            self.POSTGRES_DB,
+        )
 
 
-POSTGRES_USER = os.getenv('POSTGRES_USER')
-POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-POSTGRES_HOST = os.getenv('POSTGRES_HOST')
-POSTGRES_DB = os.getenv('POSTGRES_DB')
-
-JWT_ACCESS_SECRET_KEY = os.getenv('JWT_ACCESS_SECRET_KEY')
-JWT_REFRESH_SECRET_KEY = os.getenv('JWT_REFRESH_SECRET_KEY')
-
-ALGORITHM = 'HS256'
+def get_config() -> Config:
+    return Config()
