@@ -1,35 +1,13 @@
-from abc import ABC, abstractmethod
 from typing import List
 
 from fastapi import HTTPException
 from starlette import status
 
 from exceptions.base import NotFound
+from interfaces.services.users import UserServiceInterface
 from managers.users import UserManager
-from models.users import User
+from db.models.users import User
 from repositories.users import UserRepository
-
-
-class UserServiceInterface(ABC):
-    @abstractmethod
-    async def authenticate(
-            self,
-            email: str,
-            input_password: str,
-    ) -> int:
-        raise NotImplementedError
-
-    async def get_users(self) -> List[User]:
-        raise NotImplementedError
-
-    async def get_user(self, user_id: int) -> User:
-        raise NotImplementedError
-
-    async def create_user(
-            self,
-            user_data: dict,
-    ) -> dict:
-        raise NotImplementedError
 
 
 class UserService(UserServiceInterface):

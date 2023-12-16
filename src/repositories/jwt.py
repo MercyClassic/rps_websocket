@@ -1,11 +1,12 @@
 from sqlalchemy import select, insert, delete
 from sqlalchemy.orm import load_only
 
-from models.jwt import RefreshToken
-from models.users import User
+from interfaces.repositories.jwt import JWTRepositoryInterface
+from db.models.jwt import RefreshToken
+from db.models.users import User
 
 
-class JWTRepository:
+class JWTRepository(JWTRepositoryInterface):
 
     def __init__(self, session):
         self.session = session

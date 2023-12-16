@@ -1,10 +1,12 @@
+import os
 from typing import Dict
 
 from starlette.websockets import WebSocket
 
-from db.database import async_sessionmaker
+from db.database import async_session_maker
+from encoders.jwt import JWTEncoder
 from managers.users import UserManager
-from models.users import User
+from db.models.users import User
 from repositories.users import UserRepository
 
 
@@ -15,11 +17,14 @@ class Player:
 
     def __init__(self, ws: WebSocket):
         self.__ws = ws
-        self.repository = UserRepository(async_sessionmaker())
+        self.repository = UserRepository(async_session_maker())  # cringe
 
     async def create_db_user(self, token):
         user_id = (
-            UserManager
+            UserManager(
+                os.environ['JWT_ACCESS_SECRET_KEY'],
+                JWTEncoder(os.environ['ALGORITHM']),
+            )
             .get_user_info_from_access_token(token)
             .get('user_id')
         )
@@ -64,6 +69,8 @@ class Game:
     number = None
     __active: bool = True
     __finished: bool = False
+    __init_player: Player = None
+    __connected_player: Player = None
 
     @staticmethod
     def get_available_states():

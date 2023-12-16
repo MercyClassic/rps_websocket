@@ -11,7 +11,7 @@ class GameConnectionManager:
     def __init__(self):
         self.connections: List[WebSocket] = []
 
-    async def handle(self):
+    async def handle(self, websocket: WebSocket, data: dict):
         raise NotImplementedError
 
     async def connect(self, websocket: WebSocket) -> None:

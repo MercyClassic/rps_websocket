@@ -1,26 +1,32 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import logging
+import os
+from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
-class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file=('.env', '../.env'))
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_DB: str
+class ConfigParseError(ValueError):
+    pass
 
+
+@dataclass
+class Config:
     JWT_ACCESS_SECRET_KEY: str
     JWT_REFRESH_SECRET_KEY: str
     ALGORITHM: str = 'HS256'
 
-    @property
-    def db_uri(self) -> str:
-        return 'postgresql+asyncpg://%s:%s@%s:5432/%s' % (
-            self.POSTGRES_USER,
-            self.POSTGRES_PASSWORD,
-            self.POSTGRES_HOST,
-            self.POSTGRES_DB,
-        )
+
+def get_str_env(key: str) -> str:
+    value = os.getenv(key)
+    if not value:
+        logger.error(f'{key} is not set')
+        raise ConfigParseError(f'{key} is not set')
+    return value
 
 
-def get_config() -> Config:
-    return Config()
+def load_config():
+    return Config(
+        JWT_ACCESS_SECRET_KEY=get_str_env('JWT_ACCESS_SECRET_KEY'),
+        JWT_REFRESH_SECRET_KEY=get_str_env('JWT_REFRESH_SECRET_KEY'),
+        ALGORITHM=get_str_env('ALGORITHM'),
+    )

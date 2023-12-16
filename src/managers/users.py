@@ -4,17 +4,22 @@ import os
 from starlette import status
 from starlette.exceptions import HTTPException
 
-from auth.jwt import decode_jwt
-from config import get_config
+from interfaces.encoders.jwt import JWTEncoderInterface
 
 
 class UserManager:
+    def __init__(
+            self,
+            jwt_access_secret_key: str,
+            jwt_encoder: JWTEncoderInterface,
+    ):
+        self.jwt_access_secret_key = jwt_access_secret_key
+        self.jwt_encoder = jwt_encoder
 
-    @staticmethod
-    def get_user_info_from_access_token(access_token: str) -> dict:
-        access_token_data = decode_jwt(
+    def get_user_info_from_access_token(self, access_token: str) -> dict:
+        access_token_data = self.jwt_encoder.decode_jwt(
             encoded_jwt=access_token,
-            secret=get_config().JWT_ACCESS_SECRET_KEY,
+            secret=self.jwt_access_secret_key,
         )
         return {
             'user_id': int(access_token_data.get('sub')),

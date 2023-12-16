@@ -1,3 +1,3 @@
 from db.database import Base
-from models.users import *
-from models.jwt import *
+from db.models.users import *
+from db.models.jwt import *

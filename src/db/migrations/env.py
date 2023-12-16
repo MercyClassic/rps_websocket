@@ -1,17 +1,17 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from config import get_config
 from db.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-database_url = '%s?async_fallback=True' % get_config().db_uri
+database_url = '%s?async_fallback=True' % os.environ['db_uri']
 
 config.set_main_option('sqlalchemy.url', database_url)
 

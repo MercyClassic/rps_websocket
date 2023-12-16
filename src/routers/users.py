@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
@@ -6,7 +6,7 @@ from pydantic import TypeAdapter
 from starlette import status
 from starlette.responses import JSONResponse
 
-from auth.auth import get_current_user_info
+from dependencies.auth import get_current_user_info
 from schemas.users import (
     UserCreateSchema,
     UserReadBaseSchema,
@@ -25,8 +25,9 @@ async def get_users(
         user_service: Annotated[UserServiceInterface, Depends()],
 ) -> JSONResponse:
     users = await user_service.get_users()
-    data = jsonable_encoder(users)
-
+    data = jsonable_encoder(
+        TypeAdapter(List[UserReadBaseSchema]).validate_python(users),
+    )
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=data,
