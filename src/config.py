@@ -13,7 +13,7 @@ class ConfigParseError(ValueError):
 class Config:
     JWT_ACCESS_SECRET_KEY: str
     JWT_REFRESH_SECRET_KEY: str
-    ALGORITHM: str = 'HS256'
+    ALGORITHM: str
 
 
 def get_str_env(key: str) -> str:
