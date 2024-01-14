@@ -17,12 +17,13 @@ RUN apt update \
     && poetry config virtualenvs.create false \
     && poetry install --only main
 
-WORKDIR /game/src
 
 COPY --chown=app:app . /game
+
+WORKDIR /game/src
 
 EXPOSE 8000
 
 USER app
 
-CMD ["gunicorn", "main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind=0.0.0.0:8000"]
+CMD ["sh", "/game/entrypoint.sh"]
