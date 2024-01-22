@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -12,6 +13,9 @@ from routers.users import router as users_router
 from routers.jwt import router as jwt_router
 
 root_dir = '%s' % Path(__file__).parent
+
+if not os.path.exists(f'{root_dir}/logs/'):
+    os.mkdir(f'{root_dir}/logs/')
 
 logger.add(
     f'{root_dir}/logs/errors.log',
